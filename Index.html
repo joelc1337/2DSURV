@@ -45,12 +45,117 @@
         player = new Sprite(resources["../Assets/player.png"].texture);
         player.x = 16;
         player.y = 16;
-        player.vx = 1;
-        player.vy = 1;
+        player.vx = 0;
+        player.vy = 0;
+ 
         app.stage.addChild(player);
+        
+        let left,
+            up,
+            right,
+            down;
+            
+        inputCapture();
+        movement();
+
+        state = play;
+        app.ticker.add(delta => gameLoop(delta));
     }
 
+    // bind keyboard input
+    function inputCapture(){
+      left = keyboard(65)
+      up = keyboard(87),
+      right = keyboard(68),
+      down = keyboard(83);
+    }
 
+    // move events (modified to allow diagonal movement)
+    // press/release previously killed movement in perpendicular direction
+    function movement(){
+      left.press = () => {
+        player.vx = -5;  
+      }
+      
+      left.release = () => {
+        player.vx = 0;
+      }
+
+      
+    //Up
+    up.press = () => {
+      player.vy = -5;
+    };
+    up.release = () => {
+      if (!down.isDown) {
+        player.vy = 0;
+      }
+    };
+    //Right
+    right.press = () => {
+      player.vx = 5;
+    };
+    right.release = () => {
+      if (!left.isDown ) {
+        player.vx = 0;
+      }
+    };
+    //Down
+    down.press = () => {
+      player.vy = 5;
+    };
+    down.release = () => {
+      if (!up.isDown ) {
+        player.vy = 0;
+      }
+    };
+
+
+    }
+
+    function gameLoop(delta){
+
+      state(delta);
+
+    }
+
+    function play(delta){
+
+      player.x += player.vx;
+      player.y += player.vy;
+
+    }
+
+    function keyboard(keyCode) {
+      var key = {};
+      key.code = keyCode;
+      key.isDown = false;
+      key.isUp = true;
+      key.press = undefined;
+      key.release = undefined;
+
+      key.downHandler = event => {
+        if(event.keyCode === key.code) {
+          if(key.isUp && key.press) key.press();
+          key.isDown = true;
+          key.isUp = false;
+        }
+        event.preventDefault();
+      }
+      
+      key.upHandler = event => {
+        if(event.keyCode === key.code){
+          if(key.isDown && key.release) key.release();
+          key.isDown = false;
+          key.isUp = true;
+        }
+        event.preventDefault();
+      }
+      
+      window.addEventListener("keydown", key.downHandler.bind(key),false)
+      window.addEventListener("keyup",key.upHandler.bind(key),false);
+      return key;
+    }
   </script>
 
 </body>
